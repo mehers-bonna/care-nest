@@ -1,11 +1,13 @@
 "use client";
+import { useRouter } from 'next/navigation';
 import React, { useState } from 'react';
 import { useParams } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 import { locationData } from "@/constants/locationData";
 import { toast } from 'react-toastify';
 
-const BookingPage = () => {
+const BookingPage = ({ params }) => {
+const router = useRouter();
   const { id } = useParams();
   const { data: session, status } = useSession();
   
@@ -71,14 +73,18 @@ const BookingPage = () => {
     const data = await res.json();
 
     if (res.ok) {
-      toast.success("Booking Request Sent Successfully!");
-    } else {
-      console.log("Server Error Response:", data);
-      toast.error(data.message || "Failed to book service.");
+        toast.success("Booking Request Sent Successfully!");
+        
+        // ৩. সাকসেস মেসেজ দেখানোর ২ সেকেন্ড পর রিডাইরেক্ট করুন
+        setTimeout(() => {
+          router.push("/my-bookings");
+        }, 2000);
+      } else {
+        toast.error("Failed to book service.");
+      }
+    } catch (error) {
+      toast.error("Something went wrong.");
     }
-  } catch (error) {
-    toast.error("Network error, try again.");
-  }
 };
 
   return (

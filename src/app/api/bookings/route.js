@@ -26,3 +26,18 @@ export const POST = async (request) => {
     );
   }
 };
+
+// আগের POST মেথডটির নিচেই এটি লিখুন
+export const GET = async (request) => {
+  const { searchParams } = new URL(request.url);
+  const email = searchParams.get("email"); // ইউজারের ইমেইল দিয়ে ডাটা ফিল্টার করবো
+
+  try {
+    await connectDB();
+    const myBookings = await Booking.find({ userEmail: email }).sort({ createdAt: -1 });
+
+    return NextResponse.json(myBookings, { status: 200 });
+  } catch (error) {
+    return NextResponse.json({ message: "Error fetching bookings" }, { status: 500 });
+  }
+};
