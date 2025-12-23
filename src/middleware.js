@@ -5,7 +5,12 @@ export async function middleware(req) {
   const token = await getToken({ req });
   const { pathname } = req.nextUrl;
 
-  // ইউজার লগইন থাকা অবস্থায় লগইন বা রেজিস্টার পেজে যেতে চাইলে হোম পেজে পাঠিয়ে দাও
+  // ১. ইউজার লগইন না থাকলে বুকিং পেজে যেতে পারবে না (Redirect to Login)
+  if (!token && pathname.startsWith("/booking")) {
+    return NextResponse.redirect(new URL("/login", req.url));
+  }
+
+  // ২. ইউজার লগইন থাকলে লগইন বা রেজিস্টার পেজে যেতে পারবে না
   if (token && (pathname === "/login" || pathname === "/register")) {
     return NextResponse.redirect(new URL("/", req.url));
   }
@@ -14,5 +19,6 @@ export async function middleware(req) {
 }
 
 export const config = {
-  matcher: ["/login", "/register"], // এই পেজগুলোতে মিডলওয়্যার চেক করবে
+  // এখানে বুকিং রাউটটিও যোগ করে দিন যাতে মিডলওয়্যার এটি চেক করতে পারে
+  matcher: ["/login", "/register", "/booking/:path*"], 
 };
