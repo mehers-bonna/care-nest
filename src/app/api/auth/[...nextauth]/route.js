@@ -36,7 +36,6 @@ const handler = NextAuth({
         signIn: '/login', 
     },
     callbacks: {
-        // নতুন ইউজারের তথ্য ডাটাবেসে সেভ করার জন্য এই অংশটি যোগ করা হয়েছে
         async signIn({ user, account }) {
             if (account.provider === "google") {
                 const { name, email, image } = user;
@@ -44,11 +43,9 @@ const handler = NextAuth({
                     const db = await connectDB();
                     const userCollection = db.collection("users");
                     
-                    // ইমেইল দিয়ে চেক করা হচ্ছে ইউজার আগে থেকেই আছে কি না
                     const userExists = await userCollection.findOne({ email });
 
                     if (!userExists) {
-                        // ইউজার না থাকলে নতুন ইউজার হিসেবে সেভ হবে
                         await userCollection.insertOne({
                             name,
                             email,

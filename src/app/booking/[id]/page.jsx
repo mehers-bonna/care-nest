@@ -4,10 +4,11 @@ import React, { useState } from 'react';
 import { useParams } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 import { locationData } from "@/constants/locationData";
-import { toast } from 'react-toastify';
+import { toast } from 'react-toastify'; 
+import Link from 'next/link';
 
-const BookingPage = ({ params }) => {
-const router = useRouter();
+const BookingPage = () => {
+  const router = useRouter();
   const { id } = useParams();
   const { data: session, status } = useSession();
   
@@ -16,7 +17,6 @@ const router = useRouter();
   const [selectedDistrict, setSelectedDistrict] = useState("");
   const [address, setAddress] = useState("");
 
-  // ১. সেশন লোড হওয়া পর্যন্ত ওয়েট করা (সাদা ব্যাকগ্রাউন্ডে টেক্সট দেখাবে)
   if (status === "loading") {
     return (
       <div className="min-h-screen w-full bg-white flex items-center justify-center">
@@ -25,7 +25,6 @@ const router = useRouter();
     );
   }
 
-  // ২. ইউজার লগইন না থাকলে মেসেজ দেখানো
   if (!session) {
     return (
       <div className="min-h-screen w-full bg-white flex items-center justify-center">
@@ -41,41 +40,35 @@ const router = useRouter();
   const unitPrice = servicePrices[id] || 0;
   const totalCost = unitPrice * days;
 
- const handleSubmit = async (e) => {
-  e.preventDefault();
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (!selectedDivision || !selectedDistrict || !address) {
+      return toast.error("Please fill all fields!");
+    }
 
-  // নিশ্চিত করুন সব ভ্যালু আছে
-  if (!selectedDivision || !selectedDistrict || !address) {
-    return toast.error("Please fill all fields!");
-  }
+    const bookingInfo = {
+      userEmail: session?.user?.email,
+      userName: session?.user?.name,
+      serviceId: id,
+      duration: Number(days),
+      location: {
+        division: selectedDivision,
+        district: selectedDistrict,
+        address: address,
+      },
+      totalCost: Number(totalCost),
+      status: "pending",
+    };
 
-  const bookingInfo = {
-    userEmail: session?.user?.email,
-    userName: session?.user?.name,
-    serviceId: id,
-    duration: Number(days), // Number এ কনভার্ট করুন
-    location: {
-      division: selectedDivision,
-      district: selectedDistrict,
-      address: address,
-    },
-    totalCost: Number(totalCost), // Number এ কনভার্ট করুন
-    status: "pending",
-  };
+    try {
+      const res = await fetch("/api/bookings", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(bookingInfo),
+      });
 
-  try {
-    const res = await fetch("/api/bookings", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(bookingInfo),
-    });
-
-    const data = await res.json();
-
-    if (res.ok) {
+      if (res.ok) {
         toast.success("Booking Request Sent Successfully!");
-        
-        // ৩. সাকসেস মেসেজ দেখানোর ২ সেকেন্ড পর রিডাইরেক্ট করুন
         setTimeout(() => {
           router.push("/my-bookings");
         }, 2000);
@@ -85,12 +78,12 @@ const router = useRouter();
     } catch (error) {
       toast.error("Something went wrong.");
     }
-};
+  };
 
   return (
-    // bg-white এবং text-black ফোর্সহফুলি দেওয়া হয়েছে
-    <div className="min-h-screen w-full bg-white text-black relative z-[999]">
-      <div className="pt-32 pb-12 px-4 max-w-3xl mx-auto">
+    <div className="min-h-screen w-full bg-gray-50 text-black pt-20">
+      <div className="pt-10 pb-12 px-4 max-w-3xl mx-auto">
+
         <div className="bg-white rounded-3xl shadow-[0_20px_50px_rgba(8,_112,_184,_0.1)] p-8 border border-gray-100">
           <h2 className="text-3xl font-extrabold text-gray-900 mb-8 text-center">
             Complete Your Booking
@@ -103,7 +96,7 @@ const router = useRouter();
               <input 
                 type="number" min="1" value={days} 
                 onChange={(e) => setDays(e.target.value)}
-                className="w-full p-4 border border-gray-300 rounded-xl outline-none focus:ring-2 focus:ring-blue-500 text-black bg-white"
+                className="w-full p-4 border border-gray-200 rounded-xl outline-none focus:ring-2 focus:ring-blue-500 text-black bg-white transition-all"
                 required
               />
             </div>
@@ -114,7 +107,7 @@ const router = useRouter();
                 <label className="block text-gray-700 font-bold mb-2">Division</label>
                 <select 
                   onChange={(e) => { setSelectedDivision(e.target.value); setSelectedDistrict(""); }}
-                  className="w-full p-4 border border-gray-300 rounded-xl outline-none text-black bg-white" 
+                  className="w-full p-4 border border-gray-200 rounded-xl outline-none text-black bg-white" 
                   required
                 >
                   <option value="">Select Division</option>
@@ -129,7 +122,7 @@ const router = useRouter();
                 <select 
                   disabled={!selectedDivision}
                   onChange={(e) => setSelectedDistrict(e.target.value)}
-                  className="w-full p-4 border border-gray-300 rounded-xl outline-none text-black bg-white disabled:bg-gray-100" 
+                  className="w-full p-4 border border-gray-200 rounded-xl outline-none text-black bg-white disabled:bg-gray-100" 
                   required
                 >
                   <option value="">Select District</option>
@@ -146,7 +139,7 @@ const router = useRouter();
               <textarea 
                 placeholder="House No, Road Name, Area..."
                 onChange={(e) => setAddress(e.target.value)}
-                className="w-full p-4 border border-gray-300 rounded-xl outline-none text-black bg-white h-24" 
+                className="w-full p-4 border border-gray-200 rounded-xl outline-none text-black bg-white h-24 transition-all" 
                 required
               ></textarea>
             </div>
@@ -154,15 +147,15 @@ const router = useRouter();
             {/* Calculation Box */}
             <div className="bg-blue-600 p-6 rounded-2xl text-white flex justify-between items-center shadow-lg">
               <div>
-                <p className="text-blue-100 font-medium">Total Price Calculation</p>
-                <p className="text-sm opacity-80">৳{unitPrice} x {days} Days</p>
+                <p className="text-blue-100 font-medium text-sm">Total Price Calculation</p>
+                <p className="text-xs opacity-80">৳{unitPrice} x {days} Days</p>
               </div>
               <p className="text-3xl font-bold font-mono">৳{totalCost}</p>
             </div>
 
             <button 
               type="submit" 
-              className="w-full bg-blue-600 text-white py-5 rounded-2xl font-bold text-xl hover:bg-blue-700 transition-all transform hover:scale-[1.01] active:scale-95 shadow-xl"
+              className="w-full bg-blue-600 text-white py-5 rounded-2xl font-bold text-xl hover:bg-blue-700 transition-all transform hover:scale-[1.01] active:scale-95 shadow-xl shadow-blue-100"
             >
               Confirm Booking Now
             </button>

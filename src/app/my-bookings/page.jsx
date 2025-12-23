@@ -1,8 +1,8 @@
 "use client";
 import React, { useEffect, useState } from 'react';
 import { useSession } from 'next-auth/react';
-// X ইম্পোর্ট করা হয়েছে মডাল ক্লোজ করার জন্য
-import { Calendar, MapPin, Clock, CreditCard, X } from 'lucide-react';
+import { Calendar, MapPin, Clock, CreditCard, X, Trash2 } from 'lucide-react';
+import { toast } from 'react-toastify';
 
 const MyBookingsPage = () => {
     const { data: session, status } = useSession();
@@ -10,25 +10,45 @@ const MyBookingsPage = () => {
     const [loading, setLoading] = useState(true);
     const [selectedBooking, setSelectedBooking] = useState(null);
 
-    useEffect(() => {
-        const fetchBookings = async () => {
-            if (session?.user?.email) {
-                try {
-                    const res = await fetch(`/api/bookings?email=${session.user.email}`);
-                    const data = await res.json();
-                    setBookings(data);
-                } catch (error) {
-                    console.error("Error fetching bookings:", error);
-                } finally {
-                    setLoading(false);
-                }
+    const fetchBookings = async () => {
+        if (session?.user?.email) {
+            try {
+                const res = await fetch(`/api/bookings?email=${session.user.email}`);
+                const data = await res.json();
+                setBookings(data);
+            } catch (error) {
+                console.error("Error fetching bookings:", error);
+            } finally {
+                setLoading(false);
             }
-        };
+        }
+    };
 
+    useEffect(() => {
         if (status === "authenticated") {
             fetchBookings();
         }
     }, [session, status]);
+
+    const handleCancel = async (id) => {
+        if (window.confirm("Are you sure you want to cancel this booking?")) {
+            try {
+                const res = await fetch(`/api/bookings?id=${id}`, {
+                    method: 'DELETE',
+                });
+
+                if (res.ok) {
+                    toast.success("Booking cancelled successfully!");
+                    fetchBookings();
+                } else {
+                    toast.error("Failed to cancel the booking.");
+                }
+            } catch (error) {
+                toast.error("Something went wrong. Please try again.");
+                console.error("Cancel error:", error);
+            }
+        }
+    };
 
     if (status === "loading" || loading) {
         return (
@@ -72,7 +92,10 @@ const MyBookingsPage = () => {
                                         <span className="bg-blue-100 text-blue-600 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider">
                                             {booking.serviceId.replace('-', ' ')}
                                         </span>
-                                        <span className={`px-3 py-1 rounded-full text-xs font-bold uppercase ${booking.status === 'pending' ? 'bg-yellow-100 text-yellow-600' : 'bg-green-100 text-green-600'
+                                        <span className={`px-3 py-1 rounded-full text-xs font-bold uppercase ${booking.status === 'pending' ? 'bg-yellow-100 text-yellow-600' :
+                                                booking.status === 'confirmed' ? 'bg-blue-100 text-blue-600' :
+                                                    booking.status === 'completed' ? 'bg-green-100 text-green-600' :
+                                                        'bg-red-100 text-red-600'
                                             }`}>
                                             {booking.status}
                                         </span>
@@ -98,24 +121,31 @@ const MyBookingsPage = () => {
                                     </div>
                                 </div>
 
-                                <div className="w-full md:w-auto flex flex-col gap-2">
-                                    <p className="text-xs text-gray-400 text-right">
+                                <div className="w-full md:w-auto flex flex-col sm:flex-row md:flex-col gap-3">
+                                    <p className="text-xs text-gray-400 text-right md:mb-1">
                                         Booked on: {new Date(booking.createdAt).toLocaleDateString()}
                                     </p>
-                                    <button
-                                        onClick={() => setSelectedBooking(booking)}
-                                        className="bg-gray-100 hover:bg-gray-200 text-gray-700 px-6 py-2.5 rounded-xl font-bold transition-all text-sm"
-                                    >
-                                        View Details
-                                    </button>
+                                    <div className="flex flex-col gap-2">
+                                        <button
+                                            onClick={() => setSelectedBooking(booking)}
+                                            className="bg-blue-50 text-blue-600 px-6 py-2.5 rounded-xl font-bold hover:bg-blue-100 transition-all text-sm"
+                                        >
+                                            View Details
+                                        </button>
+                                        <button
+                                            onClick={() => handleCancel(booking._id)}
+                                            className="bg-red-50 text-red-600 px-6 py-2.5 rounded-xl font-bold hover:bg-red-100 transition-all text-sm flex items-center justify-center gap-2"
+                                        >
+                                            <Trash2 size={16} />
+                                            Cancel Booking
+                                        </button>
+                                    </div>
                                 </div>
                             </div>
                         ))}
                     </div>
                 )}
             </div>
-
-            {/* --- Details Modal শুরু --- */}
             {selectedBooking && (
                 <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
                     <div className="bg-white rounded-3xl max-w-lg w-full p-8 shadow-2xl relative animate-in fade-in zoom-in duration-300">
@@ -162,7 +192,6 @@ const MyBookingsPage = () => {
                     </div>
                 </div>
             )}
-            {/* --- Details Modal শেষ --- */}
         </div>
     );
 };

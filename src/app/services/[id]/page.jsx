@@ -7,7 +7,6 @@ import { Clock, ShieldCheck, CheckCircle, ArrowRight } from 'lucide-react';
 const ServiceDetails = () => {
   const { id } = useParams();
 
-  // আপাতত ডাটাগুলো এখান থেকে আসবে (পরবর্তীতে API থেকে আসবে)
   const servicesData = {
     "baby-care": {
       title: "Baby Care Service",

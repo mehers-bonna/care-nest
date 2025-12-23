@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { User, Mail, Phone, Lock, ShieldCheck } from 'lucide-react';
 import { toast } from 'react-toastify';
+import { signIn } from 'next-auth/react';
 
 const RegisterPage = () => {
   const router = useRouter();
@@ -22,14 +23,12 @@ const RegisterPage = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    
     if (!validatePassword(formData.password)) {
       toast.error("Password must be 6+ characters with at least one uppercase and one lowercase letter.");
       return;
     }
 
     try {
-     
       const res = await fetch('/api/auth/register', {
         method: 'POST',
         body: JSON.stringify(formData),
@@ -38,14 +37,24 @@ const RegisterPage = () => {
         }
       });
 
-      
       const data = await res.json();
 
       if (res.ok) {
-        toast.success("Registration Successful! Redirecting to login...");
-        router.push('/login');
+        toast.success("Registration Successful! Logging you in...");
+
+        const loginRes = await signIn('credentials', {
+          email: formData.email,
+          password: formData.password,
+          redirect: false,
+        });
+
+        if (loginRes.ok) {
+          router.push('/my-bookings');
+        } else {
+          toast.info("Account created. Please login manually.");
+          router.push('/login');
+        }
       } else {
-       
         toast.error(data.message || "Something went wrong.");
       }
     } catch (error) {
@@ -68,7 +77,7 @@ const RegisterPage = () => {
             <User className="absolute left-3 top-3 text-gray-400" size={20} />
             <input
               type="text"
-              name="name" // ৪. name অ্যাট্রিবিউট নিশ্চিত করা হয়েছে
+              name="name"
               placeholder="Full Name"
               required
               className="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none transition-all text-black"

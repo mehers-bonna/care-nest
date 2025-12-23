@@ -1,11 +1,13 @@
 "use client";
 import Link from 'next/link';
 import { useState, useEffect } from 'react';
+import { usePathname } from 'next/navigation';
 import { HeartPulse, Menu, X, User, LogIn, LogOut } from 'lucide-react';
-import { useSession, signOut } from "next-auth/react"; // সেশন হুক ইম্পোর্ট
+import { useSession, signOut } from "next-auth/react";
 
 const Navbar = () => {
-  const { data: session, status } = useSession(); // লগইন স্ট্যাটাস চেক
+  const { data: session, status } = useSession();
+  const pathname = usePathname(); 
   const [isOpen, setIsOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
 
@@ -41,21 +43,29 @@ const Navbar = () => {
 
           {/* Desktop Navigation */}
           <div className="hidden md:flex items-center gap-8">
-            {navLinks.map((link) => (
-              <Link
-                key={link.name}
-                href={link.href}
-                className="text-gray-600 hover:text-blue-600 font-medium transition-colors"
-              >
-                {link.name}
-              </Link>
-            ))}
+            {navLinks.map((link) => {
+              const isActive = pathname === link.href; 
+              return (
+                <Link
+                  key={link.name}
+                  href={link.href}
+                  className={`relative font-medium transition-all duration-300 pb-1 ${
+                    isActive ? 'text-blue-600' : 'text-gray-600 hover:text-blue-600'
+                  }`}
+                >
+                  {link.name}
+                  {/* Active Underline Animation */}
+                  {isActive && (
+                    <span className="absolute bottom-0 left-0 w-full h-0.5 bg-blue-600 rounded-full transition-all duration-300"></span>
+                  )}
+                </Link>
+              );
+            })}
 
-            {/* সেশন অনুযায়ী বাটন পরিবর্তন */}
             {status === "authenticated" ? (
               <div className="flex items-center gap-4">
-                <span className="text-gray-700 font-semibold bg-blue-50 px-3 py-1 rounded-full">
-                  Hi, {session?.user?.name.split(' ')[0]} {/* শুধু প্রথম নাম দেখাবে */}
+                <span className="text-gray-700 font-semibold bg-blue-50 px-4 py-1.5 rounded-full border border-blue-100">
+                  Hi, {session?.user?.name?.split(' ')[0]}
                 </span>
                 <button 
                   onClick={() => signOut()} 
@@ -78,7 +88,7 @@ const Navbar = () => {
 
           {/* Mobile Menu Button */}
           <div className="md:hidden flex items-center">
-            <button onClick={() => setIsOpen(!isOpen)} className="text-gray-600">
+            <button onClick={() => setIsOpen(!isOpen)} className="text-gray-600 focus:outline-none">
               {isOpen ? <X size={28} /> : <Menu size={28} />}
             </button>
           </div>
@@ -87,25 +97,35 @@ const Navbar = () => {
 
       {/* Mobile Menu */}
       {isOpen && (
-        <div className="md:hidden bg-white border-t border-gray-100 absolute w-full shadow-xl">
-          <div className="px-4 pt-2 pb-6 space-y-2">
-            {navLinks.map((link) => (
-              <Link
-                key={link.name}
-                href={link.href}
-                className="block px-3 py-3 text-gray-600 hover:bg-blue-50 hover:text-blue-600 rounded-lg font-medium"
-                onClick={() => setIsOpen(false)}
-              >
-                {link.name}
-              </Link>
-            ))}
+        <div className="md:hidden bg-white border-t border-gray-100 absolute w-full shadow-xl animate-in slide-in-from-top duration-300">
+          <div className="px-4 pt-2 pb-6 space-y-1">
+            {navLinks.map((link) => {
+              const isActive = pathname === link.href;
+              return (
+                <Link
+                  key={link.name}
+                  href={link.href}
+                  className={`block px-4 py-3 rounded-lg font-semibold transition-colors ${
+                    isActive 
+                    ? 'bg-blue-50 text-blue-600 border-l-4 border-blue-600' 
+                    : 'text-gray-600 hover:bg-gray-50'
+                  }`}
+                  onClick={() => setIsOpen(false)}
+                >
+                  {link.name}
+                </Link>
+              );
+            })}
             
             {status === "authenticated" ? (
-              <div className="pt-4 border-t border-gray-100">
-                <p className="px-3 mb-2 text-sm text-gray-500">Logged in as: {session?.user?.name}</p>
+              <div className="pt-4 mt-2 border-t border-gray-100">
+                <div className="px-4 py-2 mb-2 bg-gray-50 rounded-lg">
+                   <p className="text-sm text-gray-500">Logged in as</p>
+                   <p className="font-bold text-gray-800">{session?.user?.name}</p>
+                </div>
                 <button
                   onClick={() => signOut()}
-                  className="flex items-center justify-center gap-2 w-full bg-red-500 text-white py-3 rounded-lg"
+                  className="flex items-center justify-center gap-2 w-full bg-red-500 text-white py-3.5 rounded-xl font-bold active:scale-95 transition-transform"
                 >
                   <LogOut size={18} /> Logout
                 </button>
@@ -113,7 +133,7 @@ const Navbar = () => {
             ) : (
               <Link
                 href="/login"
-                className="flex items-center justify-center gap-2 w-full bg-blue-600 text-white py-3 rounded-lg mt-4"
+                className="flex items-center justify-center gap-2 w-full bg-blue-600 text-white py-3.5 rounded-xl font-bold mt-4 shadow-lg shadow-blue-100"
                 onClick={() => setIsOpen(false)}
               >
                 <User size={18} /> Login

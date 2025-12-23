@@ -3,7 +3,6 @@ import Link from 'next/link';
 import { Baby, Heart, Activity, ArrowRight } from 'lucide-react';
 
 const ServiceCard = ({ service }) => {
-  // ক্যাটাগরি অনুযায়ী আইকন সিলেক্ট করার লজিক
   const getIcon = (category) => {
     switch (category) {
       case 'Baby Care': return <Baby size={32} className="text-blue-500" />;

@@ -54,7 +54,6 @@ const AboutSection = () => {
           {/* Right Side: Image/Card Placeholder */}
           <div className="lg:w-1/2 relative">
             <div className="bg-blue-600 rounded-3xl w-full h-[400px] relative overflow-hidden shadow-2xl">
-                {/* এখানে আপনি একটি ভালো কেয়ারগিভিং ইমেজ ব্যবহার করতে পারেন */}
                 <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1581578731522-7455051462c1?q=80&w=800')] bg-cover bg-center mix-blend-overlay opacity-60"></div>
                 <div className="absolute inset-0 flex items-center justify-center p-8 text-center">
                     <p className="text-white text-2xl font-medium italic">

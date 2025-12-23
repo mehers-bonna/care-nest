@@ -3,8 +3,13 @@ import HeroSection from "@/components/home/HeroSection";
 import ServiceCard from "@/components/home/ServiceCard";
 import Testimonials from "@/components/home/Testimonials";
 
+export const metadata = {
+  title: "CareNest | Best Home Care Services",
+  description: "CareNest provides professional baby care, elderly care, and sick care services. Trusted professionals at your doorstep.",
+  keywords: ["Home Care", "Baby Care", "Elderly Care", "Caregiving Services"],
+};
+
 export default function Home() {
-  // আপনার রিকোয়ারমেন্ট অনুযায়ী ৩টি সার্ভিস ডাটা
   const services = [
     {
       id: "baby-care",
@@ -29,7 +34,7 @@ export default function Home() {
   return (
     <main>
       <HeroSection />
-      
+
       {/* Services Overview Section */}
       <section className="py-20 bg-gray-50/50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -49,6 +54,7 @@ export default function Home() {
       </section>
       {/* About Section */}
       <AboutSection />
+      {/* testimonials section */}
       <Testimonials />
     </main>
   );
