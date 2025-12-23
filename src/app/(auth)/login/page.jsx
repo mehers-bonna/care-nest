@@ -81,9 +81,9 @@ const LoginPage = () => {
             <div className="flex-grow border-t border-gray-200"></div>
           </div>
 
-          <button 
-            type="button" 
-            onClick={() => signIn('google')} 
+          <button
+            type="button"
+            onClick={() => signIn('google', { callbackUrl: '/' })} // callbackUrl যোগ করা হয়েছে
             className="w-full flex items-center justify-center gap-3 border border-gray-200 py-3 rounded-xl hover:bg-gray-50 transition-all font-medium text-gray-700"
           >
             <Chrome className="text-blue-500" size={20} />
