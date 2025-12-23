@@ -5,6 +5,9 @@ import { connectDB } from "@/lib/connectDB";
 import bcrypt from "bcryptjs";
 
 const handler = NextAuth({
+    session: {
+        strategy: "jwt",
+    },
     providers: [
         GoogleProvider({
             clientId: process.env.GOOGLE_CLIENT_ID,
@@ -27,8 +30,13 @@ const handler = NextAuth({
 
                 const passwordMatched = bcrypt.compareSync(password, currentUser.password);
                 if (!passwordMatched) return null;
-
-                return currentUser;
+                return {
+                    id: currentUser._id.toString(),
+                    name: currentUser.name,
+                    email: currentUser.email,
+                    role: currentUser.role || "user",
+                    image: currentUser.image
+                };
             }
         })
     ],
@@ -42,7 +50,6 @@ const handler = NextAuth({
                 try {
                     const db = await connectDB();
                     const userCollection = db.collection("users");
-                    
                     const userExists = await userCollection.findOne({ email });
 
                     if (!userExists) {
@@ -64,7 +71,7 @@ const handler = NextAuth({
         },
         async jwt({ token, user }) {
             if (user) {
-                token.role = user.role || "user";
+                token.role = user.role;
             }
             return token;
         },
@@ -76,6 +83,7 @@ const handler = NextAuth({
         }
     },
     secret: process.env.NEXTAUTH_SECRET,
+    trustHost: true,
 });
 
 export { handler as GET, handler as POST };
