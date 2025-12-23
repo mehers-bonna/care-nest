@@ -1,13 +1,14 @@
 "use client";
 import Link from 'next/link';
 import { useState, useEffect } from 'react';
-import { HeartPulse, Menu, X, User, LogIn } from 'lucide-react';
+import { HeartPulse, Menu, X, User, LogIn, LogOut } from 'lucide-react';
+import { useSession, signOut } from "next-auth/react"; // সেশন হুক ইম্পোর্ট
 
 const Navbar = () => {
+  const { data: session, status } = useSession(); // লগইন স্ট্যাটাস চেক
   const [isOpen, setIsOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
 
-  // স্ক্রল করলে শ্যাডো অ্যাড করার জন্য
   useEffect(() => {
     const handleScroll = () => {
       setScrolled(window.scrollY > 20);
@@ -49,13 +50,30 @@ const Navbar = () => {
                 {link.name}
               </Link>
             ))}
-            <Link 
-              href="/login" 
-              className="flex items-center gap-2 bg-blue-600 text-white px-6 py-2.5 rounded-full hover:bg-blue-700 transition-all shadow-lg shadow-blue-200"
-            >
-              <LogIn size={18} />
-              Login
-            </Link>
+
+            {/* সেশন অনুযায়ী বাটন পরিবর্তন */}
+            {status === "authenticated" ? (
+              <div className="flex items-center gap-4">
+                <span className="text-gray-700 font-semibold bg-blue-50 px-3 py-1 rounded-full">
+                  Hi, {session?.user?.name.split(' ')[0]} {/* শুধু প্রথম নাম দেখাবে */}
+                </span>
+                <button 
+                  onClick={() => signOut()} 
+                  className="flex items-center gap-2 bg-red-500 text-white px-5 py-2.5 rounded-full hover:bg-red-600 transition-all shadow-lg shadow-red-100"
+                >
+                  <LogOut size={18} />
+                  Logout
+                </button>
+              </div>
+            ) : (
+              <Link 
+                href="/login" 
+                className="flex items-center gap-2 bg-blue-600 text-white px-6 py-2.5 rounded-full hover:bg-blue-700 transition-all shadow-lg shadow-blue-200"
+              >
+                <LogIn size={18} />
+                Login
+              </Link>
+            )}
           </div>
 
           {/* Mobile Menu Button */}
@@ -81,13 +99,26 @@ const Navbar = () => {
                 {link.name}
               </Link>
             ))}
-            <Link
-              href="/login"
-              className="flex items-center justify-center gap-2 w-full bg-blue-600 text-white py-3 rounded-lg mt-4"
-              onClick={() => setIsOpen(false)}
-            >
-              <User size={18} /> Login
-            </Link>
+            
+            {status === "authenticated" ? (
+              <div className="pt-4 border-t border-gray-100">
+                <p className="px-3 mb-2 text-sm text-gray-500">Logged in as: {session?.user?.name}</p>
+                <button
+                  onClick={() => signOut()}
+                  className="flex items-center justify-center gap-2 w-full bg-red-500 text-white py-3 rounded-lg"
+                >
+                  <LogOut size={18} /> Logout
+                </button>
+              </div>
+            ) : (
+              <Link
+                href="/login"
+                className="flex items-center justify-center gap-2 w-full bg-blue-600 text-white py-3 rounded-lg mt-4"
+                onClick={() => setIsOpen(false)}
+              >
+                <User size={18} /> Login
+              </Link>
+            )}
           </div>
         </div>
       )}

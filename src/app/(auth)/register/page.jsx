@@ -2,7 +2,7 @@
 import React, { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { User, Mail, Phone, Lock, idCard, ShieldCheck } from 'lucide-react';
+import { User, Mail, Phone, Lock, ShieldCheck } from 'lucide-react';
 import { toast } from 'react-toastify';
 
 const RegisterPage = () => {
@@ -21,17 +21,37 @@ const RegisterPage = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
     
-    // পাসওয়ার্ড ভ্যালিডেশন চেক
     if (!validatePassword(formData.password)) {
-      toast.error("Password must be 6+ chars with 1 uppercase & 1 lowercase!");
+      toast.error("Password must be 6+ characters with at least one uppercase and one lowercase letter.");
       return;
     }
 
-    // এখানে আপনার API Call হবে (পরবর্তীতে আমরা এটা সেটআপ করবো)
-    console.log("Registering User:", formData);
-    toast.success("Registration Successful!");
-    router.push('/booking'); // রেজিস্ট্রেশন সফল হলে বুকিং পেজে রিডাইরেক্ট
+    try {
+     
+      const res = await fetch('/api/auth/register', {
+        method: 'POST',
+        body: JSON.stringify(formData),
+        headers: {
+          'content-type': 'application/json'
+        }
+      });
+
+      
+      const data = await res.json();
+
+      if (res.ok) {
+        toast.success("Registration Successful! Redirecting to login...");
+        router.push('/login');
+      } else {
+       
+        toast.error(data.message || "Something went wrong.");
+      }
+    } catch (error) {
+      console.error("Client Error:", error);
+      toast.error("Failed to connect to server. Please try again.");
+    }
   };
 
   return (
@@ -45,13 +65,14 @@ const RegisterPage = () => {
         <form onSubmit={handleSubmit} className="space-y-5">
           {/* Name Field */}
           <div className="relative">
-            <User className="absolute left-3 top-3 text-gray-800" size={20} />
+            <User className="absolute left-3 top-3 text-gray-400" size={20} />
             <input
               type="text"
+              name="name" // ৪. name অ্যাট্রিবিউট নিশ্চিত করা হয়েছে
               placeholder="Full Name"
               required
               className="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none transition-all text-black"
-              onChange={(e) => setFormData({...formData, name: e.target.value})}
+              onChange={(e) => setFormData({ ...formData, name: e.target.value })}
             />
           </div>
 
@@ -60,10 +81,11 @@ const RegisterPage = () => {
             <ShieldCheck className="absolute left-3 top-3 text-gray-400" size={20} />
             <input
               type="text"
+              name="nid"
               placeholder="NID Number"
               required
               className="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none transition-all text-black"
-              onChange={(e) => setFormData({...formData, nid: e.target.value})}
+              onChange={(e) => setFormData({ ...formData, nid: e.target.value })}
             />
           </div>
 
@@ -72,10 +94,11 @@ const RegisterPage = () => {
             <Mail className="absolute left-3 top-3 text-gray-400" size={20} />
             <input
               type="email"
+              name="email"
               placeholder="Email Address"
               required
               className="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none transition-all text-black"
-              onChange={(e) => setFormData({...formData, email: e.target.value})}
+              onChange={(e) => setFormData({ ...formData, email: e.target.value })}
             />
           </div>
 
@@ -84,10 +107,11 @@ const RegisterPage = () => {
             <Phone className="absolute left-3 top-3 text-gray-400" size={20} />
             <input
               type="text"
+              name="contact"
               placeholder="Contact Number"
               required
               className="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none transition-all text-black"
-              onChange={(e) => setFormData({...formData, contact: e.target.value})}
+              onChange={(e) => setFormData({ ...formData, contact: e.target.value })}
             />
           </div>
 
@@ -96,10 +120,11 @@ const RegisterPage = () => {
             <Lock className="absolute left-3 top-3 text-gray-400" size={20} />
             <input
               type="password"
+              name="password"
               placeholder="Password (6+ char, A-Z, a-z)"
               required
               className="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none transition-all text-black"
-              onChange={(e) => setFormData({...formData, password: e.target.value})}
+              onChange={(e) => setFormData({ ...formData, password: e.target.value })}
             />
           </div>
 

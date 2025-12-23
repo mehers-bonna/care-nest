@@ -2,11 +2,37 @@
 import React from 'react';
 import Link from 'next/link';
 import { Mail, Lock, Chrome } from 'lucide-react';
+import { signIn } from "next-auth/react"; // NextAuth ইম্পোর্ট
+import { useRouter } from 'next/navigation';
+import { toast } from 'react-toastify';
 
 const LoginPage = () => {
-  const handleSubmit = (e) => {
+  const router = useRouter();
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    // লগইন লজিক আমরা NextAuth দিয়ে সেটআপ করবো
+    const email = e.target.email.value;
+    const password = e.target.password.value;
+
+    try {
+      // Credentials দিয়ে লগইন রিকোয়েস্ট পাঠানো
+      const res = await signIn("credentials", {
+        email,
+        password,
+        redirect: false, // পেজ রিলোড আটকানোর জন্য
+      });
+
+      if (res.error) {
+        toast.error("Invalid Email or Password");
+      } else {
+        toast.success("Login Successful!");
+        router.push("/"); // লগইন শেষে হোম পেজে নিয়ে যাবে
+        router.refresh(); // সেশন আপডেট করার জন্য
+      }
+    } catch (error) {
+      console.error("Login Error:", error);
+      toast.error("Something went wrong. Please try again.");
+    }
   };
 
   return (
@@ -22,6 +48,7 @@ const LoginPage = () => {
             <Mail className="absolute left-3 top-3 text-gray-400" size={20} />
             <input
               type="email"
+              name="email" // name অ্যাট্রিবিউট জরুরি
               placeholder="Email Address"
               required
               className="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none transition-all text-black"
@@ -32,6 +59,7 @@ const LoginPage = () => {
             <Lock className="absolute left-3 top-3 text-gray-400" size={20} />
             <input
               type="password"
+              name="password" // name অ্যাট্রিবিউট জরুরি
               placeholder="Password"
               required
               className="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none transition-all text-black"
@@ -42,7 +70,7 @@ const LoginPage = () => {
             type="submit"
             className="w-full bg-blue-600 text-white py-4 rounded-xl font-bold hover:bg-blue-700 shadow-lg shadow-blue-200 transition-all"
           >
-            Sign In
+            Log In
           </button>
         </form>
 
@@ -53,7 +81,11 @@ const LoginPage = () => {
             <div className="flex-grow border-t border-gray-200"></div>
           </div>
 
-          <button className="w-full flex items-center justify-center gap-3 border border-gray-200 py-3 rounded-xl hover:bg-gray-50 transition-all font-medium text-gray-700">
+          <button 
+            type="button" 
+            onClick={() => signIn('google')} 
+            className="w-full flex items-center justify-center gap-3 border border-gray-200 py-3 rounded-xl hover:bg-gray-50 transition-all font-medium text-gray-700"
+          >
             <Chrome className="text-blue-500" size={20} />
             Login with Google
           </button>
